@@ -1,5 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from github.models.discussion import Discussion
+from github.models.discussion_comment import DiscussionComment
+from github.models.repository import Repository
 
 from telegram.bot import Bot
 from telegram.utils import escape_html
@@ -35,12 +38,15 @@ async def receive_github_repository_webhook(payload: Request):
 
     message = None
 
+    repo = Repository(**body['repo'])
+    repo_name = repo.name.replace('rtu-mirea-')
+
     if event == 'issue_comment' and body['action'] == 'created':
         issue = Issue(**body['issue'])
         comment = IssueComment(**body['comment'])
 
-        message = "💬 Комментарий от <a href='{}'>{}</a> в <a href='{}'>{}</a>:\n{}".format(
-            comment.user.html_url, escape_html(
+        message = "💬 ({}) Комментарий от <a href='{}'>{}</a> в <a href='{}'>{}</a>:\n{}".format(
+            repo_name, comment.user.html_url, escape_html(
                 comment.user.login), comment.html_url,
             escape_html(issue.title), escape_html(comment.body)
         )
@@ -48,18 +54,38 @@ async def receive_github_repository_webhook(payload: Request):
     elif event == 'issues' and body['action'] == 'created':
         issue = Issue(**body['issue'])
 
-        message = "🗣 <a href='{}'>{}</a> создал новый Issue - <a href='{}'>{}</a>".format(
-            issue.user.html_url, escape_html(issue.user.login), issue.html_url,
+        message = "🗣 ({}) <a href='{}'>{}</a> создал(а) новый Issue - <a href='{}'>{}</a>".format(
+            repo_name, issue.user.html_url, escape_html(
+                issue.user.login), issue.html_url,
             escape_html(issue.title)
         )
 
     elif event == 'pull_request' and body['action'] == 'opened':
         pull_request = PullRequest(**body['pull_request'])
 
-        message = "🛠 <a href='{}'>{}</a> прислал новый PR - <a href='{}'>{}</a>".format(
-            pull_request.user.html_url, escape_html(
+        message = "🛠 ({}) <a href='{}'>{}</a> прислал(а) новый PR - <a href='{}'>{}</a>".format(
+            repo_name, pull_request.user.html_url, escape_html(
                 pull_request.user.login), pull_request.html_url,
             escape_html(pull_request.title)
+        )
+
+    elif event == 'discussion' and body['action'] == 'created':
+        discussion = Discussion(**body['discussion'])
+
+        message = "🛠 ({}) <a href='{}'>{}</a> создал(а) новую дискуссию - <a href='{}'>{}</a>".format(
+            repo_name, discussion.user.html_url, escape_html(
+                discussion.user.login), discussion.html_url,
+            escape_html(discussion.title)
+        )
+
+    elif event == 'discussion_comment' and body['action'] == 'created':
+        discussion_comment = DiscussionComment(**body['comment'])
+
+        message = "💬 ({}) Комментарий от <a href='{}'>{}</a> в <a href='{}'>{}</a>:\n{}".format(
+            repo_name, comment.user.html_url, escape_html(
+                comment.user.login), discussion_comment.discussion.html_url,
+            escape_html(discussion_comment.discussion.title), escape_html(
+                discussion_comment.body)
         )
 
     if message:
