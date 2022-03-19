@@ -79,12 +79,13 @@ async def receive_github_repository_webhook(payload: Request):
         )
 
     elif event == 'discussion_comment' and body['action'] == 'created':
+        discussion = Discussion(**body['discussion'])
         discussion_comment = DiscussionComment(**body['comment'])
 
         message = "💬 ({}) Комментарий от <a href='{}'>{}</a> в <a href='{}'>{}</a>:\n{}".format(
             repo_name, discussion_comment.user.html_url, escape_html(
-                  discussion_comment.user.login), discussion_comment.discussion.html_url,
-            escape_html(discussion_comment.discussion.title), escape_html(
+                discussion_comment.user.login), discussion.html_url,
+            escape_html(discussion.title), escape_html(
                 discussion_comment.body)
         )
 

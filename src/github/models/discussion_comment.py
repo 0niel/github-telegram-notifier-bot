@@ -11,4 +11,3 @@ class DiscussionComment(BaseModel):
     html_url: Optional[str]
     body: Optional[str]
     user: Optional[User]
-    discussion: Optional[Discussion]

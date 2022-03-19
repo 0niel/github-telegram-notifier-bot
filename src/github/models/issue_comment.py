@@ -11,4 +11,3 @@ class IssueComment(BaseModel):
     issue_url: Optional[str]
     user: Optional[User]
     body: Optional[str]
-
