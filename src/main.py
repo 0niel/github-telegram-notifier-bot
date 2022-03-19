@@ -38,7 +38,7 @@ async def receive_github_repository_webhook(payload: Request):
 
     message = None
 
-    repo = Repository(**body['repo'])
+    repo = Repository(**body['repository'])
     repo_name = repo.name.replace('rtu-mirea-', '')
 
     if event == 'issue_comment' and body['action'] == 'created':
@@ -82,8 +82,8 @@ async def receive_github_repository_webhook(payload: Request):
         discussion_comment = DiscussionComment(**body['comment'])
 
         message = "💬 ({}) Комментарий от <a href='{}'>{}</a> в <a href='{}'>{}</a>:\n{}".format(
-            repo_name, comment.user.html_url, escape_html(
-                comment.user.login), discussion_comment.discussion.html_url,
+            repo_name, discussion_comment.user.html_url, escape_html(
+                  discussion_comment.user.login), discussion_comment.discussion.html_url,
             escape_html(discussion_comment.discussion.title), escape_html(
                 discussion_comment.body)
         )
