@@ -39,7 +39,7 @@ async def receive_github_repository_webhook(payload: Request):
     message = None
 
     repo = Repository(**body['repo'])
-    repo_name = repo.name.replace('rtu-mirea-')
+    repo_name = repo.name.replace('rtu-mirea-', '')
 
     if event == 'issue_comment' and body['action'] == 'created':
         issue = Issue(**body['issue'])
