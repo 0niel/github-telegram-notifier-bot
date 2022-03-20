@@ -95,8 +95,8 @@ async def receive_github_repository_webhook(payload: Request):
         discussion = Discussion(**body['discussion'])
         label = Label(**body['label'])
 
-        if label.name == 'approved 👍':
-            message = "👍 ({}) <a href='{}'>{}</a> одобрил новую фичу - <a href='{}'>{}</a>. Теперь она в roadmap.".format(
+        if label.name.split()[0] == 'approved':
+            message = "👍 ({}) Была одобрена новая фича от <a href='{}'>{}</a> - <a href='{}'>{}</a>. Теперь она в roadmap.".format(
                 repo_name, discussion.user.html_url, escape_html(
                     discussion.user.login), discussion.html_url,
                 escape_html(discussion.title),
