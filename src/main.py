@@ -74,7 +74,7 @@ async def receive_github_repository_webhook(payload: Request):
     elif event == 'discussion' and action == 'created':
         discussion = Discussion(**body['discussion'])
 
-        message = "🛠 ({}) <a href='{}'>{}</a> создал(а) новую дискуссию - <a href='{}'>{}</a>".format(
+        message = "🗣 ({}) <a href='{}'>{}</a> создал(а) новую дискуссию - <a href='{}'>{}</a>".format(
             repo_name, discussion.user.html_url, escape_html(
                 discussion.user.login), discussion.html_url,
             escape_html(discussion.title)
