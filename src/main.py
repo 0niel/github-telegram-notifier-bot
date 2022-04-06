@@ -53,7 +53,7 @@ async def receive_github_repository_webhook(payload: Request):
             escape_html(issue.title), escape_html(comment.body)
         )
 
-    elif event == 'issues' and action == 'created':
+    elif event == 'issues' and action == 'created' or event == 'issues' and action == 'opened':
         issue = Issue(**body['issue'])
 
         message = "🗣 ({}) <a href='{}'>{}</a> создал(а) новый Issue - <a href='{}'>{}</a>".format(
