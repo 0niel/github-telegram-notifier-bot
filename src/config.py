@@ -7,7 +7,7 @@ class AppConfig:
     TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
     # GitHub config
-    GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET", "secret")
+    GITHUB_URL_WEBHOOK_SECRET = os.getenv("GITHUB_URL_WEBHOOK_SECRET", "secret")
 
     # FastAPI config
     FASTAPI_OPENAPI_URL = os.getenv("FASTAPI_OPENAPI_URL", None)
