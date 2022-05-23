@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import AppConfig as config
+from github.models.commit import Commit
 from github.models.discussion import Discussion
 from github.models.discussion_comment import DiscussionComment
 from github.models.issue import Issue
@@ -9,6 +10,7 @@ from github.models.issue_comment import IssueComment
 from github.models.label import Label
 from github.models.pull_request import PullRequest
 from github.models.repository import Repository
+from github.models.user import User
 from telegram.bot import Bot
 from telegram.utils import escape_html
 
@@ -31,11 +33,13 @@ app.add_middleware(
 )
 
 
-@app.post("/github/webhook/{}/".format(config.GITHUB_WEBHOOK_SECRET))
+@app.post("/github/webhook/{}/".format(config.GITHUB_URL_WEBHOOK_SECRET))
 async def receive_github_repository_webhook(payload: Request):
     body = await payload.json()
     event = payload.headers.get("X-Github-Event")
-    action = body["action"]
+    action = ""
+    if "action" in body:
+        action = body["action"]
 
     message = None
 
@@ -55,12 +59,7 @@ async def receive_github_repository_webhook(payload: Request):
             escape_html(comment.body),
         )
 
-    elif (
-        event == "issues"
-        and action == "created"
-        or event == "issues"
-        and action == "opened"
-    ):
+    elif event == "issues" and action == "created":
         issue = Issue(**body["issue"])
 
         message = "🗣 ({}) <a href='{}'>{}</a> создал(а) новый Issue - <a href='{}'>{}</a>".format(
@@ -118,6 +117,17 @@ async def receive_github_repository_webhook(payload: Request):
                 discussion.html_url,
                 escape_html(discussion.title),
             )
+
+    elif event == "push":
+        commit = Commit(**body["head_commit"])
+        sender = User(**body["sender"])
+        message = "🧩 Пуш в мастер от от <a href='{}'>{}</a>: {} ({})".format(
+            repo_name,
+            sender.html_url,
+            escape_html(sender.login),
+            escape_html(commit.message),
+            commit.url,
+        )
 
     if message:
         bot.send_message(
