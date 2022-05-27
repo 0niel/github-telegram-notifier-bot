@@ -119,15 +119,17 @@ async def receive_github_repository_webhook(payload: Request):
             )
 
     elif event == "push":
-        commit = Commit(**body["head_commit"])
-        sender = User(**body["sender"])
-        message = "🧩 ({}) Пуш в мастер от от <a href='{}'>{}</a>: {} ({})".format(
-            repo_name,
-            sender.html_url,
-            escape_html(sender.login),
-            escape_html(commit.message),
-            commit.url,
-        )
+        ref = body["ref"]
+        if ref == "refs/heads/main" or ref == "refs/heads/master":
+            commit = Commit(**body["head_commit"])
+            sender = User(**body["sender"])
+            message = "🧩 ({}) Пуш в мастер от от <a href='{}'>{}</a>: {} ({})".format(
+                repo_name,
+                sender.html_url,
+                escape_html(sender.login),
+                escape_html(commit.message),
+                commit.url,
+            )
 
     if message:
         bot.send_message(
