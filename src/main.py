@@ -33,14 +33,11 @@ app.add_middleware(
 )
 
 
-@app.post("/github/webhook/{}/".format(config.GITHUB_URL_WEBHOOK_SECRET))
+@app.post(f"/github/webhook/{config.GITHUB_URL_WEBHOOK_SECRET}/")
 async def receive_github_repository_webhook(payload: Request):
     body = await payload.json()
     event = payload.headers.get("X-Github-Event")
-    action = ""
-    if "action" in body:
-        action = body["action"]
-
+    action = body["action"] if "action" in body else ""
     message = None
 
     repo = Repository(**body["repository"])
@@ -50,86 +47,49 @@ async def receive_github_repository_webhook(payload: Request):
         issue = Issue(**body["issue"])
         comment = IssueComment(**body["comment"])
 
-        message = "💬 ({}) Комментарий от <a href='{}'>{}</a> в <a href='{}'>{}</a>:\n{}".format(
-            repo_name,
-            comment.user.html_url,
-            escape_html(comment.user.login),
-            comment.html_url,
-            escape_html(issue.title),
-            escape_html(comment.body),
-        )
+        message = f"💬 ({repo_name}) Комментарий от <a href='{comment.user.html_url}'>{escape_html(comment.user.login)}</a> в <a href='{comment.html_url}'>{escape_html(issue.title)}</a>:\n{escape_html(comment.body)}"
+
 
     elif event == "issues" and action == "created":
         issue = Issue(**body["issue"])
 
-        message = "🗣 ({}) <a href='{}'>{}</a> создал(а) новый Issue - <a href='{}'>{}</a>".format(
-            repo_name,
-            issue.user.html_url,
-            escape_html(issue.user.login),
-            issue.html_url,
-            escape_html(issue.title),
-        )
+        message = f"🗣 ({repo_name}) <a href='{issue.user.html_url}'>{escape_html(issue.user.login)}</a> создал(а) новый Issue - <a href='{issue.html_url}'>{escape_html(issue.title)}</a>"
+
 
     elif event == "pull_request" and action == "opened":
         pull_request = PullRequest(**body["pull_request"])
 
-        message = "🛠 ({}) <a href='{}'>{}</a> прислал(а) новый PR - <a href='{}'>{}</a>".format(
-            repo_name,
-            pull_request.user.html_url,
-            escape_html(pull_request.user.login),
-            pull_request.html_url,
-            escape_html(pull_request.title),
-        )
+        message = f"🛠 ({repo_name}) <a href='{pull_request.user.html_url}'>{escape_html(pull_request.user.login)}</a> прислал(а) новый PR - <a href='{pull_request.html_url}'>{escape_html(pull_request.title)}</a>"
+
 
     elif event == "discussion" and action == "created":
         discussion = Discussion(**body["discussion"])
 
-        message = "🗣 ({}) <a href='{}'>{}</a> создал(а) новую дискуссию - <a href='{}'>{}</a>".format(
-            repo_name,
-            discussion.user.html_url,
-            escape_html(discussion.user.login),
-            discussion.html_url,
-            escape_html(discussion.title),
-        )
+        message = f"🗣 ({repo_name}) <a href='{discussion.user.html_url}'>{escape_html(discussion.user.login)}</a> создал(а) новую дискуссию - <a href='{discussion.html_url}'>{escape_html(discussion.title)}</a>"
+
 
     elif event == "discussion_comment" and action == "created":
         discussion = Discussion(**body["discussion"])
         discussion_comment = DiscussionComment(**body["comment"])
 
-        message = "💬 ({}) Комментарий от <a href='{}'>{}</a> в <a href='{}'>{}</a>:\n{}".format(
-            repo_name,
-            discussion_comment.user.html_url,
-            escape_html(discussion_comment.user.login),
-            discussion.html_url,
-            escape_html(discussion.title),
-            escape_html(discussion_comment.body),
-        )
+        message = f"💬 ({repo_name}) Комментарий от <a href='{discussion_comment.user.html_url}'>{escape_html(discussion_comment.user.login)}</a> в <a href='{discussion.html_url}'>{escape_html(discussion.title)}</a>:\n{escape_html(discussion_comment.body)}"
+
 
     elif event == "discussion" and action == "labeled":
         discussion = Discussion(**body["discussion"])
         label = Label(**body["label"])
 
         if label.name.split()[0] == "approved":
-            message = "👍 ({}) Была одобрена новая фича от <a href='{}'>{}</a> - <a href='{}'>{}</a>. Теперь она в roadmap.".format(
-                repo_name,
-                discussion.user.html_url,
-                escape_html(discussion.user.login),
-                discussion.html_url,
-                escape_html(discussion.title),
-            )
+            message = f"👍 ({repo_name}) Была одобрена новая фича от <a href='{discussion.user.html_url}'>{escape_html(discussion.user.login)}</a> - <a href='{discussion.html_url}'>{escape_html(discussion.title)}</a>. Теперь она в roadmap."
+
 
     elif event == "push":
         ref = body["ref"]
-        if ref == "refs/heads/main" or ref == "refs/heads/master":
+        if ref in ["refs/heads/main", "refs/heads/master"]:
             commit = Commit(**body["head_commit"])
             sender = User(**body["sender"])
-            message = "🧩 ({}) Пуш в мастер от от <a href='{}'>{}</a>: {} ({})".format(
-                repo_name,
-                sender.html_url,
-                escape_html(sender.login),
-                escape_html(commit.message),
-                commit.url,
-            )
+            message = f"🧩 ({repo_name}) Пуш в мастер от от <a href='{sender.html_url}'>{escape_html(sender.login)}</a>: {escape_html(commit.message)} ({commit.url})"
+
 
     if message:
         bot.send_message(
