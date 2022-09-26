@@ -5,17 +5,13 @@ class Bot:
     def __init__(self, token):
         self.token = token
 
-        self.url = "https://api.telegram.org/bot{}".format(self.token)
+        self.url = f"https://api.telegram.org/bot{self.token}"
 
     def get_me(self):
-        resp = requests.get(self.url + "/getMe")
-
-        return resp
+        return requests.get(f"{self.url}/getMe")
 
     def get_updates(self):
-        resp = requests.get(self.url + "/getUpdates")
-
-        return resp
+        return requests.get(f"{self.url}/getUpdates")
 
     def send_message(self, chat_id, text, parse_mode):
         params = dict(
@@ -25,6 +21,4 @@ class Bot:
             disable_web_page_preview=True,
         )
 
-        resp = requests.get(self.url + "/sendMessage", data=params)
-
-        return resp
+        return requests.get(f"{self.url}/sendMessage", data=params)
